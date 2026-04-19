@@ -1,3 +1,3 @@
-module healthcheck
+module tcp-monitor
 
-go 1.21
+go 1.26.1
