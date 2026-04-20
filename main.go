@@ -28,15 +28,21 @@ func main() {
 		fmt.Printf("[%s]\n", time.Now().Format("2006-01-02 15:04:05"))
 		allHealthy := true
 		for _, target := range targets {
-			r := checkTCP(target, *timeout)
-			status := "✓ 健康"
-			detail := fmt.Sprintf("延迟 %v", r.Latency.Round(time.Millisecond))
-			if !r.Healthy {
-				status = "✗ 异常"
-				detail = r.Error
-				allHealthy = false
+			results := []CheckResult{
+				checkTCP(target, *timeout),
+				checkUDP(target, *timeout),
 			}
-			fmt.Printf("  %-25s %s  (%s)\n", r.Address, status, detail)
+			for _, r := range results {
+				addr := fmt.Sprintf("%s/%s", r.Address, strings.ToUpper(r.Protocol))
+				status := "✓ 健康"
+				detail := fmt.Sprintf("延迟 %v", r.Latency.Round(time.Millisecond))
+				if !r.Healthy {
+					status = "✗ 异常"
+					detail = r.Error
+					allHealthy = false
+				}
+				fmt.Printf("  %-30s %s  (%s)\n", addr, status, detail)
+			}
 		}
 		fmt.Println(strings.Repeat("-", 50))
 		if !allHealthy && *interval == 0 {
